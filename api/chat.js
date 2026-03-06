@@ -14,7 +14,7 @@ const DOMAINS = [
   {
     id: "path",
     label: "Path",
-    stewardshipQuestion: "Am I on my path — and actually moving?",
+    stewardshipQuestion: "Am I walking my path — or just walking?",
     fractal: "Vision",
     avatarPrompt: `We're starting with Path — not your job, but your gift alive in the world. The question this domain holds is: am I on my path, and am I actually moving?
 
@@ -225,19 +225,36 @@ Stewardship question: "${domain.stewardshipQuestion}"
 Avatar character: ${session.domainData[domain.id]?.characterBrief || session.domainData[domain.id]?.avatarList || "not captured"}
 Current reality: ${session.currentPlacement}
 
-Infer an honest 1-10 score from behavioural evidence only — not aspirations, not intentions, not self-assessment. Read what they emphasised, minimised, and omitted.
+Infer an honest score from behavioural evidence only — not aspirations, not intentions, not self-assessment. Read what they emphasised, minimised, and omitted. The scale uses half-point increments.
 
-Score calibration:
-1-3: Genuine difficulty — crisis, neglect, or near-breakdown
-4-5: Functional but not thriving
-6-7: Working but with clear gaps
-8-9: Genuinely thriving
-10: Extraordinary — reserve carefully
+THE HORIZON SCALE — score against these precisely:
+10  World-Class       — Complete coherence. Effortless mastery, luminous presence, contribution that uplifts others. The art and the artist are one.
+9.5 Exemplar+        — Integrated and at ease. Leads by example; influence radiates naturally.
+9   Exemplar         — Deeply skilled, balanced, reliable. Excellence feels natural and sustainable.
+8.5 Fluent+          — Competence meets wisdom; growth through curiosity and depth.
+8   Fluent           — Solid foundations, steady excellence, self-aware and grounded.
+7.5 Capable+         — Consistent progress; confidence building through deliberate practice.
+7   Capable          — Dependable, engaged, purposeful.
+6.5 Functional+      — Mostly consistent; stabilising habits, pacing energy.
+6   Functional       — Competent, responsible; maintaining, sometimes fatigued.
+5.5 Plateau+         — Curiosity stirring; ready to move again.
+5   Plateau          — Holding steady but uninspired; minimal expansion.
+4.5 Friction+        — Restless recognition that change is due.
+4   Friction         — Desire present, momentum low; self-judgment softening into openness.
+3.5 Strain+          — Inconsistent, overwhelmed, starting to see the cycle.
+3   Strain           — Energy collapsed inward; fear or shame active. Needs rest, not force.
+2.5 Crisis+          — High stress, low support; survival instincts active.
+2   Crisis           — Basics unmet, clarity lost; exhaustion or anxiety chronic.
+1.5 Emergency+       — Alternating between intensity and shutdown.
+1   Emergency        — Spiritually or emotionally collapsed; light dimmed.
+0   Ground Zero      — End of a cycle. Stillness before rebirth.
 
-Write a 2-3 sentence reflection grounded in what they actually described. Warm, direct, precise. Reference specific things they said.
+CRITICAL: Any score below 5 means this domain is actively creating harm to the person and the people around them. Name this honestly in the reflection without shame. Use the tier language naturally.
+
+Write a 2-3 sentence reflection grounded in what they actually described. Warm, direct, precise. Reference specific things they said. Include the tier name naturally.
 
 Respond ONLY with valid JSON, no markdown:
-{"score":<1-10>,"reflection":"<2-3 sentences>","invite_correction":"<one sentence>"}`;
+{"score":<0-10 in 0.5 increments>,"tier":"<tier name>","reflection":"<2-3 sentences>","invite_correction":"<one sentence>"}`;
 }
 
 // ─── Avatar synthesis prompt ──────────────────────────────────────────────────
@@ -275,18 +292,18 @@ Brain synthesis: ${session.brainAnswer || "not provided"}
 Produce the final Life OS map.
 
 STAGE — identify from score patterns:
-Foundation: Multiple domains 2-4, needs stabilisation before development
+Stabilisation: Multiple domains 2-4, needs stabilisation before development work
 Orientation: Mixed 3-6, needs honest self-location and life coherence
-Purpose: Most domains 5-7, ready to look outward at contribution
-Integration: Most domains 6-8, compounding what's working
-Horizon: Most domains 7+, hitting identity ceiling, ready for crossing
+Alignment: Most domains 5-7, ready to look outward at contribution
+Development: Most domains 6-8, compounding what's working
+Transformation: Most domains 7+, hitting identity ceiling, ready for crossing
 
-FOCUS DOMAINS — three most catalytic right now, not necessarily lowest scores.
+FOCUS DOMAINS — three most catalytic right now. CRITICAL TRIAGE RULE: any domain scoring below 5 is an active harm zone and must be included as a focus domain — this takes priority over catalytic potential. Below-5 domains are addressed before optimisation work elsewhere.
 
 OVERALL REFLECTION — 3-4 paragraphs. This is the recognition moment. Write as someone who listened carefully to their whole life for the last hour. Not a report. Not a list. A genuine synthesis — their current reality, their Horizon Goals, what the patterns show, what's possible. Every sentence should only be possible because of what this specific person shared. The emotional endpoint is not "that's accurate" — it is "how did it know that."
 
 Respond ONLY with valid JSON, no markdown:
-{"stage":"<Foundation|Orientation|Purpose|Integration|Horizon>","stage_description":"<2-3 sentences specific to them, not generic>","focus_domains":["<id>","<id>","<id>"],"focus_reasoning":"<why these three — specific to their data>","overall_reflection":"<3-4 paragraphs>","brain_insight":"<what the Brain answer reveals>","next_step":"<one honest specific sentence>"}`;
+{"stage":"<Stabilisation|Orientation|Alignment|Development|Transformation>","stage_description":"<2-3 sentences specific to them, not generic>","focus_domains":["<id>","<id>","<id>"],"focus_reasoning":"<why these three — below-5 domains named first if present, then catalytic logic>","overall_reflection":"<3-4 paragraphs>","brain_insight":"<what the Brain answer reveals>","next_step":"<one honest specific sentence>"}`;
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
@@ -361,8 +378,9 @@ module.exports = async (req, res) => {
     // ── Placement confirmation ────────────────────────────────────────────────
     if (session.phase === "placement_confirm") {
       if (!session.domainData[domainId]) session.domainData[domainId] = {};
-      const correctionMatch = userMessage.match(/\b([1-9]|10)\b/);
-      if (correctionMatch) session.domainData[domainId].score = parseInt(correctionMatch[1]);
+      // Accept half-point corrections (e.g. "4.5", "7", "6.5")
+      const correctionMatch = userMessage.match(/\b(10|[0-9](?:\.[05])?)\b/);
+      if (correctionMatch) session.domainData[domainId].score = parseFloat(correctionMatch[1]);
 
       session.phase = "domain";
       session.domainStep = "horizon";
@@ -485,19 +503,21 @@ module.exports = async (req, res) => {
           const raw = inferResponse.content[0].text.replace(/```json|```/g, "").trim();
           inferData = JSON.parse(raw);
         } catch {
-          inferData = { score: 5, reflection: "Here's what I'm reading from what you've shared.", invite_correction: "Does this feel accurate?" };
+          inferData = { score: 5, tier: "Plateau", reflection: "Here's what I'm reading from what you've shared.", invite_correction: "Does this feel accurate?" };
         }
 
         session.domainData[domainId].score = inferData.score;
+        session.domainData[domainId].tier  = inferData.tier || "";
         session.phase = "placement_confirm";
         session.domainStep = "horizon";
         session.probeCount = 0;
 
+        const tierLabel = inferData.tier ? ` — ${inferData.tier}` : "";
         return res.json({
           session,
           phase: "placement_confirm",
           phaseLabel: `${domain.label} — Placement`,
-          message: `${inferData.reflection}\n\nI'm reading you at around a ${inferData.score}/10 in ${domain.label}.\n\n${inferData.invite_correction}`,
+          message: `${inferData.reflection}\n\nI'm reading you at ${inferData.score}/10 in ${domain.label}${tierLabel}.\n\n${inferData.invite_correction}`,
           inputMode: "text"
         });
       }
