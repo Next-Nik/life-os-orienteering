@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Life OS</title>
+  <title>Life OS: Orienteering</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -12,8 +15,11 @@
 
     <header class="header">
       <img src="/logo.png" alt="Life OS" class="logo" />
-      <h1>Life OS</h1>
-      <p>See yourself clearly. Orient wisely.</p>
+      <div class="header-wordmark">
+        <span class="header-eyebrow">LIFE OS</span>
+        <h1>Orienteering</h1>
+      </div>
+      <p class="header-sub">See yourself clearly. Orient wisely.</p>
     </header>
 
     <div class="progress-container" id="progress-container" style="display:none;">
@@ -28,18 +34,21 @@
       <div class="carousel-track" id="carousel-track">
 
         <div class="carousel-slide" data-slide="0">
+          <span class="slide-label">The Question</span>
           <h2 class="carousel-heading">How are you actually doing — across all of life?</h2>
           <p>Most tools track one thing. Life OS holds all seven. Path, Spark, Body, Finances, Relationships, Inner Game, Outer Game — seen together, honestly, as a whole.</p>
-          <p>This is not about optimization. It's about orientation.</p>
+          <p>This is not about optimisation. It's about orientation.</p>
         </div>
 
         <div class="carousel-slide" data-slide="1">
+          <span class="slide-label">The Method</span>
           <h2 class="carousel-heading">Three questions. Seven domains. Your actual map.</h2>
-          <p>In each area of life, you'll define what 10/10 looks like for someone like you specifically — then describe where you honestly are — then name your actual wish.</p>
+          <p>In each area of life, you'll define what 10/10 looks like for someone like you — then describe where you honestly are — then name your actual wish.</p>
           <p>The scale is yours. The finish line is yours. The map is yours.</p>
         </div>
 
         <div class="carousel-slide" data-slide="2">
+          <span class="slide-label">The Commitment</span>
           <h2 class="carousel-heading">No right answers. Only honest ones.</h2>
           <p>This takes about 20–30 minutes. By the end, you'll know where you are, where you're going, and which three domains — if you focused on them — would move everything else.</p>
           <p>The goal is a full yes life. Let's find out where you're starting from.</p>
@@ -54,9 +63,9 @@
           <span class="carousel-dot" data-dot="2"></span>
         </div>
         <button class="carousel-arrow" id="carousel-arrow" aria-label="Next">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="11" cy="11" r="10.5" stroke="#E89842"/>
-            <path d="M9 7l4 4-4 4" stroke="#E89842" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="11.5" stroke="#C8A96E" stroke-opacity="0.6"/>
+            <path d="M10 8l4 4-4 4" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
       </div>
