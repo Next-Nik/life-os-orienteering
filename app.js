@@ -23,8 +23,11 @@ const App = {
       dots.forEach((d, i) => d.classList.toggle("active", i === currentSlide));
 
       if (currentSlide === totalSlides - 1) {
-        arrow.outerHTML = `<button class="carousel-begin" id="carousel-arrow">Begin your map</button>`;
-        document.getElementById("carousel-arrow").addEventListener("click", () => this.startConversation());
+        const beginBtn = document.createElement("button");
+        beginBtn.className = "carousel-begin";
+        beginBtn.textContent = "Begin your map";
+        beginBtn.addEventListener("click", () => this.startConversation());
+        arrow.parentNode.replaceChild(beginBtn, arrow);
       }
     };
 
@@ -276,9 +279,6 @@ const App = {
       ctx.beginPath();
       let firstMoved = false;
       placedPoints.forEach((p, i) => {
-        if (d => d.score === null) {
-          // still draw to centre for unfilled domains to keep shape
-        }
         if (!firstMoved) { ctx.moveTo(p.x, p.y); firstMoved = true; }
         else ctx.lineTo(p.x, p.y);
       });
