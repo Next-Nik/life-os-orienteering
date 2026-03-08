@@ -218,7 +218,7 @@ const App = {
     ctx.clearRect(0, 0, W, H);
 
     // ── Background rings (gossamer) ──
-    const goldRing = "rgba(200,169,110,0.12)";
+    const goldRing = "rgba(200,146,42,0.12)";
     for (let ring = 2; ring <= 10; ring += 2) {
       ctx.beginPath();
       for (let i = 0; i < n; i++) {
@@ -240,7 +240,7 @@ const App = {
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.lineTo(cx + maxR * Math.cos(angle), cy + maxR * Math.sin(angle));
-      ctx.strokeStyle = "rgba(200,169,110,0.15)";
+      ctx.strokeStyle = "rgba(200,146,42,0.15)";
       ctx.lineWidth = 0.5;
       ctx.stroke();
     }
@@ -261,7 +261,7 @@ const App = {
         i === 0 || !horizonPoints[i - 1]?.hasData ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
       });
       if (horizonWithData.length === n) ctx.closePath();
-      ctx.strokeStyle = "rgba(200,169,110,0.45)";
+      ctx.strokeStyle = "rgba(200,146,42,0.45)";
       ctx.lineWidth = 1;
       ctx.stroke();
       ctx.setLineDash([]);
@@ -283,9 +283,9 @@ const App = {
         else ctx.lineTo(p.x, p.y);
       });
       ctx.closePath();
-      ctx.fillStyle = "rgba(200,169,110,0.12)";
+      ctx.fillStyle = "rgba(200,146,42,0.12)";
       ctx.fill();
-      ctx.strokeStyle = "rgba(200,169,110,0.7)";
+      ctx.strokeStyle = "rgba(200,146,42,0.7)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
@@ -322,7 +322,7 @@ const App = {
 
       // Bold if scored
       ctx.font = d.score !== null ? "600 10px Georgia, serif" : "400 10px Georgia, serif";
-      ctx.fillStyle = d.score !== null ? "rgba(200,169,110,0.9)" : "rgba(26,26,26,0.35)";
+      ctx.fillStyle = d.score !== null ? "rgba(200,146,42,0.9)" : "rgba(26,26,26,0.35)";
       ctx.fillText(d.label, x, y);
     });
 
