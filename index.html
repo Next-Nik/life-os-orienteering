@@ -35,15 +35,15 @@
 
         <div class="carousel-slide" data-slide="0">
           <span class="slide-label">The Question</span>
-          <h2 class="carousel-heading">How are you actually doing — across all of life?</h2>
-          <p>Most tools track one thing. Life OS holds all seven. Path, Spark, Body, Finances, Relationships, Inner Game, Outer Game — seen together, honestly, as a whole.</p>
-          <p>This is not about optimisation. It's about orientation.</p>
+          <h2 class="carousel-heading">Seven domains. One honest map.</h2>
+          <p>Path, Spark, Body, Finances, Relationships, Inner Game, Outer Game — seen together, as a whole. Not what you wish were true. Where you genuinely are.</p>
+          <p>Orientation starts with a clear picture.</p>
         </div>
 
         <div class="carousel-slide" data-slide="1">
           <span class="slide-label">The Method</span>
-          <h2 class="carousel-heading">Three questions. Seven domains. Your actual map.</h2>
-          <p>In each area of life, you'll define what 10/10 looks like for someone like you — then describe where you honestly are — then name your actual wish.</p>
+          <h2 class="carousel-heading">Three questions. Seven domains. Your map builds as you go.</h2>
+          <p>In each domain, you'll define what 10/10 looks like for someone like you — then describe where you honestly are — then name your actual wish. Your map takes shape after each domain lands.</p>
           <p>The scale is yours. The finish line is yours. The map is yours.</p>
         </div>
 
@@ -73,6 +73,11 @@
 
     <!-- Chat area -->
     <div id="chat-area" style="display:none; flex-direction:column; flex:1;">
+      <!-- Live wheel — builds as each domain completes -->
+      <div id="wheel-container" class="wheel-container" style="display:none;">
+        <canvas id="domain-wheel" width="280" height="280"></canvas>
+        <div id="wheel-legend" class="wheel-legend"></div>
+      </div>
       <div id="chat-container"></div>
     </div>
 
