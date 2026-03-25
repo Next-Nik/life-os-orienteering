@@ -18,17 +18,17 @@
 // For now reads from window.SUPABASE_URL / window.SUPABASE_ANON_KEY
 // which are set in index.html. See index.html for the script block.
 
-let supabase = null;
+let _supabase = null;
 
 function initSupabase() {
-  if (supabase) return supabase;
+  if (_supabase) return _supabase;
   const url = window.SUPABASE_URL;
   const key = window.SUPABASE_ANON_KEY;
   if (!url || !key || url.includes("YOUR_")) return null;
 
   try {
-    supabase = window.supabase.createClient(url, key);
-    return supabase;
+    _supabase = window.supabase.createClient(url, key);
+    return _supabase;
   } catch {
     return null;
   }
