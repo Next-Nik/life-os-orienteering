@@ -1,23 +1,19 @@
 // ============================================================
-// LIFE OS — AUTH GUARD
+// LIFE OS — AUTH GUARD v2
 // auth-guard.js
 //
 // Include this script in any tool that requires sign-in.
 // Place BEFORE ui.js and app.js in your HTML.
 //
-// What it does:
-// 1. Checks for an existing Supabase session on page load
-// 2. If no session → redirects to nextus.world/login?redirect=[current-url]
-// 3. If session exists → sets window.LIFEOS_USER and continues
-//
-// Usage in index.html (after Supabase SDK):
-//   <script src="/auth-guard.js"></script>
+// v2 fix: 3-second timeout — if Supabase doesn't respond,
+// fail open so the tool loads rather than showing a blank page.
 // ============================================================
 
 (async function() {
   const SUPABASE_URL      = window.SUPABASE_URL;
   const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
   const LOGIN_URL         = "https://nextus.world/login";
+  const AUTH_TIMEOUT_MS   = 3000;
 
   // Can't check auth without credentials — fail open for local dev
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes("YOUR_")) {
@@ -33,14 +29,36 @@
     return;
   }
 
-  try {
-    const { data: { session }, error } = await sb.auth.getSession();
+  // Race the session check against a timeout
+  // If Supabase is slow, fail open rather than blocking the tool
+  const timeoutPromise = new Promise((resolve) =>
+    setTimeout(() => resolve({ timedOut: true }), AUTH_TIMEOUT_MS)
+  );
 
-    if (error) {
-      console.warn("[AuthGuard] Session check error:", error.message);
-      // Fail open — don't block the tool on a network error
+  const sessionPromise = sb.auth.getSession().then(({ data, error }) => ({
+    session: data?.session,
+    error,
+    timedOut: false
+  })).catch((e) => ({
+    session: null,
+    error: e,
+    timedOut: false
+  }));
+
+  try {
+    const result = await Promise.race([sessionPromise, timeoutPromise]);
+
+    if (result.timedOut) {
+      console.warn("[AuthGuard] Session check timed out — failing open.");
       return;
     }
+
+    if (result.error) {
+      console.warn("[AuthGuard] Session check error:", result.error.message || result.error);
+      return; // Fail open — don't block the tool on a network error
+    }
+
+    const session = result.session;
 
     if (!session || !session.user) {
       // No session — redirect to login with return URL
