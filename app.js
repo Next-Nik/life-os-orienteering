@@ -1,4 +1,4 @@
-// LIFE OS — APP LOGIC v4
+// LIFE OS: THE MAP — APP LOGIC v4
 // Session management, API communication, event handling.
 // Seven domains: Path, Spark, Body, Finances, Relationships, Inner Game, Outer Game
 //
@@ -18,24 +18,24 @@
 // For now reads from window.SUPABASE_URL / window.SUPABASE_ANON_KEY
 // which are set in index.html. See index.html for the script block.
 
-let _supabase = null;
+let supabase = null;
 
 function initSupabase() {
-  if (_supabase) return _supabase;
+  if (supabase) return supabase;
   const url = window.SUPABASE_URL;
   const key = window.SUPABASE_ANON_KEY;
   if (!url || !key || url.includes("YOUR_")) return null;
 
   try {
-    _supabase = window.supabase.createClient(url, key);
-    return _supabase;
+    supabase = window.supabase.createClient(url, key);
+    return supabase;
   } catch {
     return null;
   }
 }
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
-const LS_KEY = "lifeos_orienteering_session_v1";
+const LS_KEY = "lifeos_themap_session_v1";
 
 function lsSave(session) {
   try {
@@ -67,40 +67,19 @@ function lsClear() {
 }
 
 // ─── Supabase session save ────────────────────────────────────────────────────
-// No unique constraint on user_id — orienteering_sessions keeps history.
-// First save inserts and stores the row id. Subsequent saves update that row.
 async function supabaseSaveSession(session, userId) {
   const sb = initSupabase();
   if (!sb || !userId) return;
   try {
-    const isComplete = session.status === "complete" || session.phase === "complete";
-    if (App._sessionRowId) {
-      // Update the existing row for this session
-      await sb.from("orienteering_sessions").update({
-        session:      session,
-        phase:        session.phase,
-        updated_at:   new Date().toISOString(),
-        complete:     isComplete,
-        completed_at: isComplete ? new Date().toISOString() : null
-      }).eq("id", App._sessionRowId);
-    } else {
-      // Insert new row and store the id for future updates
-      const { data, error } = await sb
-        .from("orienteering_sessions")
-        .insert({
-          user_id:    userId,
-          session:    session,
-          phase:      session.phase,
-          updated_at: new Date().toISOString(),
-          complete:   isComplete
-        })
-        .select("id")
-        .single();
-      if (!error && data?.id) App._sessionRowId = data.id;
-      if (error) console.warn("Supabase insert failed:", error.message);
-    }
+    await sb.from("orienteering_sessions").upsert({
+      user_id:    userId,
+      session:    session,
+      phase:      session.phase,
+      updated_at: new Date().toISOString(),
+      complete:   session.status === "complete" || session.phase === "complete"
+    }, { onConflict: "user_id" });
   } catch (err) {
-    console.warn("Supabase autosave failed:", err);
+    console.warn("[TheMap] Supabase autosave failed:", err);
   }
 }
 
@@ -108,13 +87,13 @@ async function supabaseSaveSession(session, userId) {
 const App = {
   session:          null,
   isWaiting:        false,
-  userId:           null,       // set after Supabase sign-in
+  userId:           null,
   userEmail:        null,
-  warningShown:     false,      // 10-min warning fires once
+  warningShown:     false,
   warningTimer:     null,
-  autosaveTimer:    null,       // 5-min Supabase autosave interval
-  pendingMapData:   null,       // held until auth decision at completion
-  _sessionRowId:    null,       // tracks current session DB row id (insert once, update after)
+  autosaveTimer:    null,
+  pendingMapData:   null,
+  messageHistory:   [],         // [{role, content, domEl}] for back navigation
 
   // ─── Init ──────────────────────────────────────────────────────────────────
   init() {
@@ -136,42 +115,10 @@ const App = {
     } catch {}
   },
 
-  // ─── Ensure anonymous session exists ──────────────────────────────────────
-  async ensureSession() {
-    if (this.userId) return; // already have a session
-    const sb = initSupabase();
-    if (!sb) return;
-    try {
-      const { data, error } = await sb.auth.signInAnonymously();
-      if (error) { console.warn('[Orienteering] Anonymous sign-in failed:', error.message); return; }
-      if (data?.user) {
-        this.userId = data.user.id;
-        console.log('[Orienteering] Anonymous session created:', data.user.id);
-      }
-    } catch (err) {
-      console.warn('[Orienteering] ensureSession error:', err);
-    }
-  },
-
   bindEvents() {
-    let currentSlide = 0;
-    const totalSlides = 3;
-    const track = document.getElementById("carousel-track");
-    const arrow = document.getElementById("carousel-arrow");
-    const dots  = document.querySelectorAll(".carousel-dot");
-
-    const advanceCarousel = () => {
-      currentSlide++;
-      track.style.transform = `translateX(-${currentSlide * 33.333}%)`;
-      dots.forEach((d, i) => d.classList.toggle("active", i === currentSlide));
-
-      if (currentSlide === totalSlides - 1) {
-        arrow.outerHTML = `<button class="carousel-begin" id="carousel-arrow">Begin your map</button>`;
-        document.getElementById("carousel-arrow").addEventListener("click", () => this.startConversation());
-      }
-    };
-
-    if (arrow) arrow.addEventListener("click", advanceCarousel);
+    // Single entry screen — direct bind to begin button
+    const beginBtn = document.getElementById("begin-btn");
+    if (beginBtn) beginBtn.addEventListener("click", () => this.startConversation());
 
     const sendBtn = document.getElementById("send-btn");
     const input   = document.getElementById("user-input");
@@ -196,9 +143,10 @@ const App = {
   async startConversation() {
     UI.hideWelcome();
     UI.showChat();
-
-    // Create anonymous session on first meaningful engagement
-    await this.ensureSession();
+    UI.showNavBar(
+      () => this.goBack(),
+      () => this.restart()
+    );
 
     // Start the 10-minute warning timer (anonymous users only)
     this.startWarningTimer();
@@ -258,25 +206,29 @@ const App = {
   async signInWithEmail(email) {
     const sb = initSupabase();
     if (!sb) {
+      // Supabase not configured — store email locally for now, proceed as if signed in
       this.userEmail = email;
       this.onSignInSuccess(null, email);
       return;
     }
 
     try {
-      // Use updateUser to upgrade anonymous session to identified.
-      // This preserves the anonymous user's existing data.
-      // Do NOT use signInWithOtp — it may create a separate auth flow.
-      const { error } = await sb.auth.updateUser({ email });
+      // Use OTP magic link — no password required
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true }
+      });
+
       if (error) throw error;
 
-      // Get the current user after upgrade
-      const { data: { user } } = await sb.auth.getUser();
+      // OTP sent — user needs to click link in email.
+      // For now we treat them as "pending auth" and save what we have.
       this.userEmail = email;
-      this.onSignInSuccess(user?.id || null, email);
+      this.onSignInSuccess(null, email);
 
     } catch (err) {
       console.warn("Sign in error:", err);
+      // Fail gracefully — store email, continue
       this.userEmail = email;
       this.onSignInSuccess(null, email);
     }
@@ -321,6 +273,7 @@ const App = {
     if (!suppressBubble) {
       const userBubble = UI.createUserMessage(text);
       chatContainer.appendChild(userBubble);
+      this.messageHistory.push({ role: "user", content: text, domEl: userBubble });
       UI.scrollToMessage(userBubble);
     }
 
@@ -362,10 +315,6 @@ const App = {
       this.session = data.session;
       // localStorage autosave after every response
       lsSave(this.session);
-      // Supabase save on every response if signed in
-      if (this.userId) {
-        supabaseSaveSession(this.session, this.userId);
-      }
     }
 
     const chatContainer = document.getElementById("chat-container");
@@ -379,8 +328,8 @@ const App = {
       this.stopTimers();
       lsClear(); // Clear localStorage on completion — data will live in Supabase
 
+      UI.showRestartOnly();
       if (this.userId || this.userEmail) {
-        // Already signed in or email captured — deliver full results
         this.deliverFullResults(data.mapData, data.session || this.session);
       } else {
         // Anonymous — show light results, hold full map pending sign-in
@@ -534,10 +483,39 @@ const App = {
     return wrapper;
   },
 
+  // ─── Navigation ────────────────────────────────────────────────────────────
+  goBack() {
+    if (this.messageHistory.length < 2) return;
+    const lastAssistant = this.messageHistory.pop();
+    const lastUser      = this.messageHistory.pop();
+    if (lastAssistant?.domEl) lastAssistant.domEl.remove();
+    if (lastUser?.domEl)      lastUser.domEl.remove();
+    UI.enableInput();
+    UI.setInputMode ? UI.setInputMode("text") : null;
+    UI.setBackEnabled(this.messageHistory.length >= 2);
+  },
+
+  restart() {
+    this.session        = null;
+    this.isWaiting      = false;
+    this.messageHistory = [];
+    this.pendingMapData = null;
+    this.stopTimers();
+    document.getElementById("chat-container").innerHTML = "";
+    document.getElementById("chat-area").style.display = "none";
+    document.getElementById("progress-container").style.display = "none";
+    document.getElementById("progress-fill").style.width = "0%";
+    document.getElementById("input-area").style.display = "none";
+    document.getElementById("welcome-screen").style.display = "";
+    UI.hideNavBar();
+  },
+
   addAssistantMessage(text) {
     const chatContainer = document.getElementById("chat-container");
     const el = UI.createAssistantMessage(text);
     chatContainer.appendChild(el);
+    this.messageHistory.push({ role: "assistant", content: text, domEl: el });
+    UI.setBackEnabled(this.messageHistory.length >= 2);
     UI.scrollToMessage(el);
     UI.enableInput();
   }

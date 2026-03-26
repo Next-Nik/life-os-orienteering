@@ -113,6 +113,44 @@ const UI = {
     if (c) c.style.display = "flex";
   },
 
+
+  // ─── Navigation bar ─────────────────────────────────────────────────────────
+  showNavBar(onBack, onRestart) {
+    if (document.getElementById("nav-bar")) return;
+    const bar = document.createElement("div");
+    bar.id = "nav-bar";
+    bar.innerHTML = `
+      <div class="nav-bar-inner">
+        <button class="nav-btn nav-btn-back" id="nav-back">← Back</button>
+        <button class="nav-btn nav-btn-restart" id="nav-restart">Start again</button>
+      </div>
+    `;
+    const inputArea = document.getElementById("input-area");
+    if (inputArea) inputArea.parentNode.insertBefore(bar, inputArea);
+    document.getElementById("nav-back").addEventListener("click", onBack);
+    document.getElementById("nav-restart").addEventListener("click", onRestart);
+    this.setBackEnabled(false);
+  },
+
+  setBackEnabled(enabled) {
+    const btn = document.getElementById("nav-back");
+    if (btn) {
+      btn.disabled = !enabled;
+      btn.style.opacity = enabled ? "1" : "0.35";
+      btn.style.cursor = enabled ? "pointer" : "default";
+    }
+  },
+
+  hideNavBar() {
+    const bar = document.getElementById("nav-bar");
+    if (bar) bar.remove();
+  },
+
+  showRestartOnly() {
+    const back = document.getElementById("nav-back");
+    if (back) back.style.display = "none";
+  },
+
   // ─── Save warning banner ───────────────────────────────────────────────────
   // Appears at 10 minutes for anonymous users. Non-blocking — sits above chat.
   // Dismissed permanently once shown.
