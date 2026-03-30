@@ -302,7 +302,7 @@ body {
 
 .btn-send {
   background: rgba(200,146,42,0.05);
-  color: #C8922A;
+  color: #A8721A;
   border: 1.5px solid rgba(200,146,42,0.78);
   border-radius: 40px;
   padding: 12px 22px;
@@ -453,7 +453,7 @@ body {
   border-radius: 40px;
   border: 1.5px solid rgba(200,146,42,0.78);
   background: rgba(200,146,42,0.05);
-  color: #C8922A;
+  color: #A8721A;
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   font-weight: 600;
@@ -923,7 +923,7 @@ body {
   background: rgba(200,146,42,0.05);
   border: 1.5px solid rgba(200,146,42,0.78);
   border-radius: 40px;
-  color: #C8922A;
+  color: #A8721A;
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   font-weight: 600;
@@ -1037,7 +1037,7 @@ body {
   background: rgba(200,146,42,0.05);
   border: 1.5px solid rgba(200,146,42,0.78);
   border-radius: 40px;
-  color: #C8922A;
+  color: #A8721A;
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   font-weight: 600;
@@ -1101,7 +1101,7 @@ body {
   border-radius: 40px;
   border: 1.5px solid rgba(200,146,42,0.78);
   background: rgba(200,146,42,0.05);
-  color: #C8922A;
+  color: #A8721A;
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   font-weight: 600;
@@ -1151,7 +1151,7 @@ body {
   letter-spacing: 0.02em;
 }
 
-.nav-btn:hover { color: #C8922A; }
+.nav-btn:hover { color: #A8721A; }
 .nav-btn-restart { margin-left: auto; }
 
 
@@ -1217,7 +1217,7 @@ body {
   letter-spacing: 0.01em;
 }
 
-.horizon-expand-btn:hover { color: #C8922A; }
+.horizon-expand-btn:hover { color: #A8721A; }
 
 .horizon-draft-text {
   margin-top: 12px;
@@ -1241,7 +1241,7 @@ body {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 13px;
   font-style: italic;
-  color: #C8922A;
+  color: #A8721A;
   background: none;
   border: none;
   cursor: pointer;
@@ -1257,7 +1257,7 @@ body {
   border-radius: 40px;
   border: 1.5px solid rgba(200,146,42,0.78);
   background: rgba(200,146,42,0.05);
-  color: #C8922A;
+  color: #A8721A;
   font-family: 'Cormorant SC', Georgia, serif;
   font-size: 14px;
   font-weight: 600;
@@ -1284,7 +1284,7 @@ body {
 }
 
 .horizon-locked-msg span {
-  color: #C8922A;
+  color: #A8721A;
   font-style: normal;
   font-family: 'Cormorant SC', Georgia, serif;
   font-size: 13px;
