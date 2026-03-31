@@ -651,12 +651,7 @@ const App = {
 
 document.addEventListener("DOMContentLoaded", () => {
   App.init();
-  // Auto-start — no welcome screen gate
-  // Wait for auth-init.js to resolve before starting
-  if (window.LIFEOS_USER !== undefined) {
-    App.startConversation();
-  } else {
-    window.addEventListener('lifeos:auth', () => App.startConversation(), { once: true });
-  }
+  // Auto-start — always wait for lifeos:auth so auth-init.js has resolved
+  window.addEventListener('lifeos:auth', () => App.startConversation(), { once: true });
 });
 window.App = App;
